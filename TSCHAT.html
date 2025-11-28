@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TSCAT – Gemini</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ROOT THEMES */
+:root {
+  --theme1: #075E54;
+  --theme2: #0B806F;
+  --theme3: #146C94;
+  --theme4: #9A208C;
+  --theme5: #FF8B13;
+  --theme6: #1A4D2E;
+  --theme7: #6C00FF;
+  --theme8: #C70A80;
+  --theme9: #179BAE;
+  --theme10:#FF6000;
+
+  --header-color: var(--theme1);
+  --text-color: #222;
+  --chat-bg: rgba(255,255,255,0.7);
+  --user-bubble: #d2f7c8;
+  --bot-bubble: #ffffff;
+}
+
+/* DARK MODE */
+body.dark {
+  background: linear-gradient(135deg, #141414, #2a2a2a);
+  --text-color: #eee;
+  --chat-bg: rgba(40,40,40,0.7);
+  --user-bubble: #0b686a;
+  --bot-bubble: #323336;
+}
+
+/* DEFAULT */
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #d4fc79, #96e6a1);
+  color: var(--text-color);
+  font-family: "Poppins", sans-serif;
+  height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* HEADER */
+#header {
+  background: var(--header-color);
+  color: white;
+  padding: 16px;
+  font-size: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* BUTTONS */
+#darkToggle, #menuBtn {
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+/* MENU POPUP */
+#menuBox {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 290px;
+  transform: translate(-50%, -50%);
+  background: rgba(255,255,255,0.95);
+  padding: 20px;
+  border-radius: 16px;
+  display: none;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.2);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+}
+
+.menu-item {
+  padding: 14px;
+  margin: 8px 0;
+  background: var(--chat-bg);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 17px;
+  text-align: center;
+  transition: 0.2s;
+}
+
+.menu-item:hover {
+  transform: scale(1.03);
+}
+
+/* CHAT */
+#chat {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  margin: 10px;
+  background: var(--chat-bg);
+  border-radius: 14px;
+}
+
+/* INPUT FIX */
+#inputBar textarea {
+  resize: none;
+  font-size: 16px;
+}
+
+/* PROFILE POPUP */
+#profileBox {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  transform: translate(-50%, -50%);
+  background: rgba(255,255,255,0.97);
+  padding: 20px;
+  border-radius: 16px;
+  display: none;
+  z-index: 2000;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+  text-align: center;
+  backdrop-filter: blur(10px);
+}
+
+#profilePic {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid var(--header-color);
+}
+
+#profileBox button {
+  margin-top: 10px;
+  padding: 8px 14px;
+  border: none;
+  background: var(--header-color);
+  color: #fff;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* MSG BUBBLE */
+.msg {
+  max-width: 75%;
+  padding: 14px;
+  margin: 10px 0;
+  border-radius: 16px;
+}
+
+.msg.user { background: var(--user-bubble); margin-left: auto; }
+.msg.bot  { background: var(--bot-bubble); margin-right: auto; }
+
+.time { font-size: 10px; opacity: 0.6; }
+
+/* INPUT */
+#inputBar {
+  padding: 10px;
+  display: flex;
+  background: rgba(255,255,255,0.3);
+  backdrop-filter: blur(6px);
+}
+
+#text {
+  flex: 1;
+  border-radius: 10px;
+  border: none;
+  padding: 10px;
+  outline: none;
+}
+
+#send {
+  margin-left: 8px;
+  background: var(--header-color);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  TSCAT
+  <div>
+    <button id="darkToggle">🌙</button>
+    <button id="menuBtn">☰</button>
+  </div>
+</div>
+
+<!-- MENU -->
+<div id="menuBox">
+  <div class="menu-item" id="settingsBtn">⚙ Settings</div>
+  <div class="menu-item" id="profileBtn">👤 Profile</div>
+  <div class="menu-item" id="themeBtn">🎨 Theme</div>
+  <div class="menu-item" id="trainingBtn">📚 Training Mode</div>
+  <div class="menu-item" id="resetMemoryBtn">🧹 Reset Memory</div>
+  <div class="menu-item" id="clearChatBtn">🗑 Clear Chat</div>
+  <div class="menu-item" onclick="menuBox.style.display='none'">❌ Close</div>
+</div>
+
+<!-- PROFILE BOX -->
+<div id="profileBox">
+  <img id="profilePic" src="" alt="Profile Photo">
+  <br><br>
+  <input type="file" id="uploadPic" accept="image/*" style="display:none;">
+  <button onclick="uploadPic.click()">Upload Photo</button>
+  <button onclick="closeProfile()">Close</button>
+</div>
+
+<!-- CHAT -->
+<div id="chat"></div>
+<div id="typing"></div>
+
+<!-- INPUT -->
+<div id="inputBar">
+  <textarea id="text" rows="1" placeholder="Type here..."></textarea>
+  <button id="send">➤</button>
+</div>
+
+<script>
+
+/* ------------------ API ------------------ */
+const API_KEY = "AIzaSyAjSZ06vvlR-5eEVDdfQZUaorcKOfERopM";
+const MODEL = "gemini-2.5-flash";
+
+/* ------------------ MEMORY ------------------ */
+if (!localStorage.getItem("ts_memory")) localStorage.setItem("ts_memory","[]");
+
+function getMemory(){ return JSON.parse(localStorage.getItem("ts_memory")); }
+
+function addMemory(t){
+  const m = getMemory();
+  if(!m.includes(t)){
+    m.push(t);
+    if(m.length > 30) m.shift();
+    localStorage.setItem("ts_memory", JSON.stringify(m));
+  }
+}
+
+function memoryPrompt(){
+  const mem = getMemory();
+  if(!mem.length) return "";
+  return "User Memory:\n" + mem.join("\n") + "\n\n";
+}
+
+function resetMemory(){
+  localStorage.setItem("ts_memory","[]");
+  alert("Memory Cleared!");
+}
+
+/* ------------------ CHAT SAVE ------------------ */
+if (!localStorage.getItem("ts_chat")) localStorage.setItem("ts_chat","");
+
+function saveChat(){ localStorage.setItem("ts_chat", chat.innerHTML); }
+function loadChat(){ chat.innerHTML = localStorage.getItem("ts_chat"); }
+loadChat();
+
+/* ------------------ MENU ------------------ */
+menuBtn.onclick = ()=> menuBox.style.display="block";
+
+document.addEventListener("click", e=>{
+  if(!menuBox.contains(e.target) && e.target !== menuBtn){
+    menuBox.style.display="none";
+  }
+});
+
+/* ------------------ DARK MODE ------------------ */
+let dark=false;
+darkToggle.onclick = ()=>{
+  dark=!dark;
+  document.body.classList.toggle("dark");
+  darkToggle.innerHTML = dark?"☀️":"🌙";
+};
+
+/* ------------------ THEME ------------------ */
+let themeIndex=1;
+themeBtn.onclick = ()=>{
+  themeIndex++;
+  if(themeIndex>10) themeIndex=1;
+  document.documentElement.style.setProperty("--header-color",`var(--theme${themeIndex})`);
+};
+
+/* ------------------ TRAINING MODE ------------------ */
+let trainingMode=false;
+trainingBtn.onclick = ()=>{
+  trainingMode=true;
+  addMsg("Training Mode Enabled. Type what I should remember.","bot");
+};
+
+/* ------------------ PROFILE ------------------ */
+profileBtn.onclick = ()=>{
+  profileBox.style.display="block";
+  const stored = localStorage.getItem("ts_profile_pic");
+  profilePic.src = stored || "https://via.placeholder.com/110";
+};
+
+function closeProfile(){ profileBox.style.display="none"; }
+
+uploadPic.onchange = function(){
+  const file = this.files[0];
+  const reader = new FileReader();
+  reader.onload = e=>{
+    profilePic.src = e.target.result;
+    localStorage.setItem("ts_profile_pic", e.target.result);
+  };
+  reader.readAsDataURL(file);
+};
+
+/* ------------------ ADD MSG ------------------ */
+function addMsg(t,type){
+  const d=document.createElement("div");
+  d.className="msg "+type;
+  d.innerHTML = t + `<div class="time">${new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</div>`;
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
+  saveChat();
+}
+
+/* ------------------ GEMINI ------------------ */
+async function askGemini(q){
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`,
+    {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        contents:[{
+          role:"user",
+          parts:[{ text: memoryPrompt() + "User: " + q }]
+        }]
+      })
+    }
+  );
+  const data = await res.json();
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+}
+
+/* ------------------ TTS ------------------ */
+function speak(text){
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 1;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+/* ------------------ SEND ------------------ */
+send.onclick = async ()=>{
+  const msg = text.value.trim();
+  if(!msg) return;
+  text.value="";
+
+  if(trainingMode){
+    addMemory(msg);
+    addMsg("Saved to memory ✔","bot");
+    trainingMode=false;
+    return;
+  }
+
+  addMsg(msg,"user");
+  addMemory(msg);
+
+  typing.innerHTML="Typing...";
+  const reply = await askGemini(msg);
+  typing.innerHTML="";
+
+  addMsg(reply,"bot");
+  speak(reply);
+
+  if(reply.length<200) addMemory(reply);
+};
+
+/* CLEAR CHAT */
+clearChatBtn.onclick = ()=>{
+  chat.innerHTML="";
+  saveChat();
+};
+
+resetMemoryBtn.onclick = resetMemory;
+
+</script>
+</body>
+</html>
